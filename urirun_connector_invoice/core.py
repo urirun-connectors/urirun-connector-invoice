@@ -129,7 +129,7 @@ def _regex_fields(text: str) -> dict[str, Any]:
     }
 
 
-def _llm_fields(text: str, model: str) -> dict[str, Any] | None:
+def _llm_fields(text: str, model: str, context: dict | None = None) -> dict[str, Any] | None:
     """Optional LLM pass (OpenRouter via litellm) for invoices the regex can't crack."""
     try:
         import json as _json
@@ -137,6 +137,8 @@ def _llm_fields(text: str, model: str) -> dict[str, Any] | None:
         prompt = ("Extract invoice fields as compact JSON with keys "
                   "nip, number, issueDate (YYYY-MM-DD), seller, net, vat, gross, currency. "
                   "Use null when absent. Invoice text:\n\n" + text[:6000])
+        if context and context.get("ticket"):
+            prompt = f"[ticket:{context.get('ticket')}] {prompt}"
         resp = litellm.completion(model=model, messages=[{"role": "user", "content": prompt}],
                                   temperature=0, max_tokens=300)
         out = resp["choices"][0]["message"]["content"]
@@ -160,7 +162,7 @@ def parse(path: str = "", text: str = "", use_llm: bool = False,
     fields = _regex_fields(body)
     method = "regex"
     if use_llm and not (fields["nip"] and fields["gross"]):
-        llm = _llm_fields(body, model)
+        llm = _llm_fields(body, model, context=context)
         if llm:
             for k, v in llm.items():
                 if v not in (None, "") and not fields.get(k):
