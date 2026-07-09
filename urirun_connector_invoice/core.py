@@ -151,7 +151,7 @@ def _llm_fields(text: str, model: str, context: dict | None = None) -> dict[str,
 @INVOICE.handler("file/query/parse", isolated=True,
                  meta={"label": "Extract structured fields from one invoice", "cliAlias": "parse"})
 def parse(path: str = "", text: str = "", use_llm: bool = False,
-          model: str = "openrouter/google/gemini-3.1-flash-image-preview") -> dict[str, Any]:
+          model: str = "openrouter/qwen/qwen3.7-plus") -> dict[str, Any]:
     """Structured fields of an invoice at `path` (or raw `text`): nip, number, issueDate,
     seller, net, vat, gross, currency. Regex-first (text-layer PDFs via pdftotext); set
     use_llm=true to fall back to an LLM (OpenRouter) when regex leaves key fields empty."""
@@ -176,7 +176,7 @@ def parse(path: str = "", text: str = "", use_llm: bool = False,
 @INVOICE.handler("folder/query/audit", isolated=True,
                  meta={"label": "Parse every invoice in a folder → structured CSV/JSON", "cliAlias": "audit"})
 def audit(root: str = "", extensions: str = "pdf", recursive: bool = True, use_llm: bool = False,
-          max_files: int = 2000, output_csv: str = "", model: str = "openrouter/google/gemini-3.1-flash-image-preview") -> dict[str, Any]:
+          max_files: int = 2000, output_csv: str = "", model: str = "openrouter/qwen/qwen3.7-plus") -> dict[str, Any]:
     """Parse all invoices under `root` into structured rows + net/VAT/gross totals. Writes a
     CSV to `output_csv` if given. Read-only over the invoice files."""
     root = os.path.expanduser(root)
@@ -434,7 +434,7 @@ def _receipt_notes(gross: float | None, items_sum: float | None) -> list[str]:
 def receipt_draft(text: str = "", receipt_json: str = "", path: str = "", vat_rate: float = 23.0,
                   seller: str = "", buyer_nip: str = "", number: str = "", currency: str = "",
                   use_llm: bool = False,
-                  model: str = "openrouter/google/gemini-3.1-flash-image-preview") -> dict[str, Any]:
+                  model: str = "openrouter/qwen/qwen3.7-plus") -> dict[str, Any]:
     """Turn a receipt ('paragon') into an invoice draft — the bridge from
     camera://host/receipt/query/parse into the invoice/KSeF flow. Accepts the camera
     parser's JSON (`receipt_json` with items/total/nip/date/currency), raw OCR `text`, or a
