@@ -11,7 +11,6 @@
 from __future__ import annotations
 
 import csv
-import io
 import json
 import os
 import re
@@ -175,17 +174,12 @@ def parse(path: str = "", text: str = "", use_llm: bool = False,
             "connector": CONNECTOR_ID, "kind": "invoice", "live": False, "path": path, "method": method, "fields": fields}
 
 
-@INVOICE.handler("folder/query/audit", isolated=True,
-                 meta={"label": "Parse every invoice in a folder → structured CSV/JSON", "cliAlias": "audit"})
-def audit(root: str = "", extensions: str = "pdf", recursive: bool = True, use_llm: bool = False,
-          max_files: int = 2000, output_csv: str = "", model: str = "openrouter/qwen/qwen3.7-plus") -> dict[str, Any]:
-    """Parse all invoices under `root` into structured rows + net/VAT/gross totals. Writes a
-    CSV to `output_csv` if given. Read-only over the invoice files."""
-    root = os.path.expanduser(root)
-    if not os.path.isdir(root):
-        return {"ok": False, "error": f"not a directory: {root}"}
-    exts = {("." + e.strip().lstrip(".")).lower() for e in extensions.split(",") if e.strip()}
-    rows, totals = [], {"net": 0.0, "vat": 0.0, "gross": 0.0}
+def _audit_collect_rows(
+    root: str, exts: "set[str]", recursive: bool, use_llm: bool, model: str, max_files: int,
+) -> "tuple[list[dict[str, Any]], dict[str, float]]":
+    """Walk `root`, parse every matching invoice file and accumulate net/vat/gross totals."""
+    rows: list[dict[str, Any]] = []
+    totals = {"net": 0.0, "vat": 0.0, "gross": 0.0}
     walker = os.walk(root) if recursive else [(root, [], os.listdir(root))]
     for dirpath, _d, files in walker:
         for fn in sorted(files):
@@ -201,6 +195,20 @@ def audit(root: str = "", extensions: str = "pdf", recursive: bool = True, use_l
                     totals[k] += f[k]
             if len(rows) >= max_files:
                 break
+    return rows, totals
+
+
+@INVOICE.handler("folder/query/audit", isolated=True,
+                 meta={"label": "Parse every invoice in a folder → structured CSV/JSON", "cliAlias": "audit"})
+def audit(root: str = "", extensions: str = "pdf", recursive: bool = True, use_llm: bool = False,
+          max_files: int = 2000, output_csv: str = "", model: str = "openrouter/qwen/qwen3.7-plus") -> dict[str, Any]:
+    """Parse all invoices under `root` into structured rows + net/VAT/gross totals. Writes a
+    CSV to `output_csv` if given. Read-only over the invoice files."""
+    root = os.path.expanduser(root)
+    if not os.path.isdir(root):
+        return {"ok": False, "error": f"not a directory: {root}"}
+    exts = {("." + e.strip().lstrip(".")).lower() for e in extensions.split(",") if e.strip()}
+    rows, totals = _audit_collect_rows(root, exts, recursive, use_llm, model, max_files)
     cols = ["file", "ok", "method", "nip", "number", "issueDate", "seller", "net", "vat", "gross", "currency"]
     csv_written = None
     if output_csv:
@@ -210,8 +218,6 @@ def audit(root: str = "", extensions: str = "pdf", recursive: bool = True, use_l
             w.writeheader()
             w.writerows(rows)
         csv_written = output_csv
-    buf = io.StringIO()
-    csv.DictWriter(buf, fieldnames=cols, extrasaction="ignore").writeheader()
     return {"ok": True, "connector": CONNECTOR_ID, "kind": "audit", "live": False, "root": root, "invoices": len(rows),
             "parsed": sum(1 for r in rows if r.get("ok")),
             "totals": {k: round(v, 2) for k, v in totals.items()},
@@ -542,6 +548,13 @@ def _build_fa2_xml(draft: dict[str, Any], *, system_info: str = "ifURI",
     _ET.register_namespace("", _FA2_NS)
     root = _ET.Element(f"{{{_FA2_NS}}}Faktura")
     _fa2_naglowek(root, created_at, system_info)
+    _fa2_parties(root, draft, seller_address, buyer_address)
+    _fa2_fa_section(root, draft, number, sale_date)
+    return _ET.tostring(root, encoding="unicode")
+
+
+def _fa2_parties(root, draft: dict[str, Any], seller_address: str, buyer_address: str) -> None:
+    """Emit the Podmiot1/Podmiot2 party blocks with draft values or placeholders."""
     _fa2_podmiot_block(root, "Podmiot1",
                        draft.get("sellerNip") or "0000000000",
                        draft.get("seller") or "Sprzedawca",
@@ -550,6 +563,10 @@ def _build_fa2_xml(draft: dict[str, Any], *, system_info: str = "ifURI",
                        draft.get("buyerNip") or "9999999999",
                        draft.get("buyer") or "Nabywca",
                        buyer_address or "ul. Nabywcza 2, 00-002 Miasto")
+
+
+def _fa2_fa_section(root, draft: dict[str, Any], number: str, sale_date: str) -> None:
+    """Emit the Fa element: currency, dates, amounts, annotations and item rows."""
     fa = _fa2_sub(root, "Fa")
     _fa2_sub(fa, "KodWaluty", draft.get("currency") or "PLN")
     _fa2_sub(fa, "P_1", draft.get("issueDate") or datetime.now(timezone.utc).strftime("%Y-%m-%d"))
@@ -561,7 +578,6 @@ def _build_fa2_xml(draft: dict[str, Any], *, system_info: str = "ifURI",
     _fa2_sub(fa, "RodzajFaktury", "VAT")
     for i, item in enumerate(draft.get("items") or [], start=1):
         _fa2_fa_wiersz(fa, i, item, rate)
-    return _ET.tostring(root, encoding="unicode")
 
 
 @INVOICE.handler("ksef/query/build", isolated=True,
