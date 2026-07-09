@@ -22,8 +22,10 @@ from typing import Any
 
 import urirun
 
+from . import _urirun_compat
+
 CONNECTOR_ID = "invoice"
-INVOICE = urirun.connector(CONNECTOR_ID, scheme="invoice", target="host", meta={"label": "Invoice field extraction"})
+INVOICE = _urirun_compat.connector(CONNECTOR_ID, scheme="invoice", target="host", meta={"label": "Invoice field extraction"})
 
 
 def _ledger(event: str, **fields: Any) -> None:
@@ -882,9 +884,28 @@ def ledger_list(path: str = "", limit: int = 50, event: str = "", connector: str
     return {"ok": True, "connector": CONNECTOR_ID, "kind": "ledger", "live": False, "path": src, "exists": True,
             "count": len(rows), "summary": summary, "rows": recent}
 
+@INVOICE.handler("invoice://host/doctor/query/report", isolated=True, meta={"label": "Connector readiness report"})
+def doctor() -> dict[str, Any]:
+    """Return a safe, read-only connector readiness report for CI smoke tests."""
+    return {
+        "ok": True,
+        "connector": CONNECTOR_ID,
+        "version": _connector_version(),
+        "status": "ready",
+    }
+
+
+def _connector_version() -> str:
+    try:
+        from importlib.metadata import version
+
+        return version("urirun-connector-invoice")
+    except Exception:
+        return "0.1.0"
+
 
 def main(argv: list[str] | None = None) -> int:
-    return INVOICE.cli(argv, manifest_prose=urirun.load_manifest(__package__))
+    return INVOICE.cli(argv, manifest_prose=_urirun_compat.load_manifest(__package__))
 
 
 urirun_bindings = INVOICE.bindings
