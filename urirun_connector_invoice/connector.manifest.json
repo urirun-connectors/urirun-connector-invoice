@@ -36,15 +36,16 @@
     "github": "https://github.com/if-uri"
   },
   "routes": [
+    "invoice://host/doctor/query/report",
     "invoice://host/file/query/parse",
     "invoice://host/folder/query/audit",
-    "invoice://host/receipt/query/draft",
-    "invoice://host/ksef/query/build",
-    "invoice://host/ksef/query/validate",
-    "invoice://host/ksef/query/upo",
-    "invoice://host/ledger/query/list",
     "invoice://host/ksef/folder/register",
-    "invoice://host/ksef/query/parse"
+    "invoice://host/ksef/query/build",
+    "invoice://host/ksef/query/parse",
+    "invoice://host/ksef/query/upo",
+    "invoice://host/ksef/query/validate",
+    "invoice://host/ledger/query/list",
+    "invoice://host/receipt/query/draft"
   ],
   "useCases": [
     "Extract NIP, dates and net/VAT/gross from one invoice.",

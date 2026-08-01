@@ -4,18 +4,40 @@
       "version": "v1",
       "effect": "query",
       "reversible": false,
-      "inp": { "path": "?str", "text": "?str", "use_llm": "?bool", "model": "?str" },
-      "out": {
-        "connector": "const:invoice", "kind": "const:invoice", "live": "bool",
-        "path": "str", "method": "str", "fields": "obj"
+      "inp": {
+        "path": "?str",
+        "text": "?str",
+        "use_llm": "?bool",
+        "model": "?str"
       },
-      "errors": ["precondition-unmet", "degraded-backend"],
+      "out": {
+        "connector": "const:invoice",
+        "kind": "const:invoice",
+        "live": "bool",
+        "path": "str",
+        "method": "str",
+        "fields": "obj"
+      },
+      "errors": [
+        "precondition-unmet",
+        "degraded-backend"
+      ],
       "examples": [
         {
-          "payload": { "text": "FAKTURA VAT nr FV 1/2026\nNIP 7781422455\nRazem 123.00 PLN" },
+          "payload": {
+            "text": "FAKTURA VAT nr FV 1/2026\nNIP 7781422455\nRazem 123.00 PLN"
+          },
           "result": {
-            "ok": true, "connector": "invoice", "kind": "invoice", "live": false,
-            "path": "", "method": "regex", "fields": { "nip": "7781422455", "gross": 123.0 }
+            "ok": true,
+            "connector": "invoice",
+            "kind": "invoice",
+            "live": false,
+            "path": "",
+            "method": "regex",
+            "fields": {
+              "nip": "7781422455",
+              "gross": 123.0
+            }
           }
         }
       ]
@@ -25,22 +47,49 @@
       "effect": "query",
       "reversible": false,
       "inp": {
-        "root": "str", "extensions": "?str", "recursive": "?bool", "use_llm": "?bool",
-        "max_files": "?int", "output_csv": "?str", "model": "?str"
+        "root": "str",
+        "extensions": "?str",
+        "recursive": "?bool",
+        "use_llm": "?bool",
+        "max_files": "?int",
+        "output_csv": "?str",
+        "model": "?str"
       },
       "out": {
-        "connector": "const:invoice", "kind": "const:audit", "live": "bool",
-        "root": "str", "invoices": "int", "parsed": "int", "totals": "obj",
-        "csv": "any", "rows": "list"
+        "connector": "const:invoice",
+        "kind": "const:audit",
+        "live": "bool",
+        "root": "str",
+        "invoices": "int",
+        "parsed": "int",
+        "totals": "obj",
+        "csv": "any",
+        "rows": "list"
       },
-      "errors": ["precondition-unmet", "degraded-backend"],
+      "errors": [
+        "precondition-unmet",
+        "degraded-backend"
+      ],
       "examples": [
         {
-          "payload": { "root": "/tmp/invoices" },
+          "payload": {
+            "root": "/tmp/invoices"
+          },
           "result": {
-            "ok": true, "connector": "invoice", "kind": "audit", "live": false,
-            "root": "/tmp/invoices", "invoices": 0, "parsed": 0,
-            "totals": { "net": 0.0, "vat": 0.0, "gross": 0.0 }, "csv": null, "rows": []
+            "ok": true,
+            "connector": "invoice",
+            "kind": "audit",
+            "live": false,
+            "root": "/tmp/invoices",
+            "invoices": 0,
+            "parsed": 0,
+            "totals": {
+              "net": 0.0,
+              "vat": 0.0,
+              "gross": 0.0
+            },
+            "csv": null,
+            "rows": []
           }
         }
       ]
@@ -49,21 +98,47 @@
       "version": "v1",
       "effect": "command",
       "reversible": false,
-      "inp": { "root": "str", "recursive": "?bool", "output_csv": "?str", "max_files": "?int" },
-      "out": {
-        "connector": "const:invoice", "kind": "const:register", "live": "bool",
-        "root": "str", "invoices": "int", "totals": "obj", "byRate": "obj",
-        "csv": "any", "rows": "list"
+      "inp": {
+        "root": "str",
+        "recursive": "?bool",
+        "output_csv": "?str",
+        "max_files": "?int"
       },
-      "errors": ["precondition-unmet", "degraded-backend"],
+      "out": {
+        "connector": "const:invoice",
+        "kind": "const:register",
+        "live": "bool",
+        "root": "str",
+        "invoices": "int",
+        "totals": "obj",
+        "byRate": "obj",
+        "csv": "any",
+        "rows": "list"
+      },
+      "errors": [
+        "precondition-unmet",
+        "degraded-backend"
+      ],
       "examples": [
         {
-          "payload": { "root": "/tmp/ksef" },
+          "payload": {
+            "root": "/tmp/ksef"
+          },
           "result": {
-            "ok": true, "connector": "invoice", "kind": "register", "live": false,
-            "root": "/tmp/ksef", "invoices": 0,
-            "totals": { "net": 0.0, "vat": 0.0, "gross": 0.0 },
-            "byRate": {}, "csv": null, "rows": []
+            "ok": true,
+            "connector": "invoice",
+            "kind": "register",
+            "live": false,
+            "root": "/tmp/ksef",
+            "invoices": 0,
+            "totals": {
+              "net": 0.0,
+              "vat": 0.0,
+              "gross": 0.0
+            },
+            "byRate": {},
+            "csv": null,
+            "rows": []
           }
         }
       ]
@@ -73,24 +148,52 @@
       "effect": "query",
       "reversible": false,
       "inp": {
-        "draft_json": "?str", "text": "?str", "receipt_json": "?str", "vat_rate": "?num",
-        "seller": "?str", "buyer_nip": "?str", "number": "?str", "currency": "?str",
-        "output_path": "?str", "system_info": "?str", "created_at": "?str",
-        "sale_date": "?str", "seller_address": "?str", "buyer_address": "?str"
+        "draft_json": "?str",
+        "text": "?str",
+        "receipt_json": "?str",
+        "vat_rate": "?num",
+        "seller": "?str",
+        "buyer_nip": "?str",
+        "number": "?str",
+        "currency": "?str",
+        "output_path": "?str",
+        "system_info": "?str",
+        "created_at": "?str",
+        "sale_date": "?str",
+        "seller_address": "?str",
+        "buyer_address": "?str"
       },
       "out": {
-        "connector": "const:invoice", "kind": "const:invoice-xml", "live": "bool",
-        "formCode": "const:FA", "variant": "enum:2", "xml": "str",
-        "path": "any", "draft": "obj", "parsed": "obj"
+        "connector": "const:invoice",
+        "kind": "const:invoice-xml",
+        "live": "bool",
+        "formCode": "const:FA",
+        "variant": "enum:2",
+        "xml": "str",
+        "path": "any",
+        "draft": "obj",
+        "parsed": "obj"
       },
-      "errors": ["precondition-unmet", "degraded-backend"],
+      "errors": [
+        "precondition-unmet",
+        "degraded-backend"
+      ],
       "examples": [
         {
-          "payload": { "receipt_json": "{\"total\": 10.0, \"nip\": \"7781422455\"}" },
+          "payload": {
+            "receipt_json": "{\"total\": 10.0, \"nip\": \"7781422455\"}"
+          },
           "result": {
-            "ok": true, "connector": "invoice", "kind": "invoice-xml", "live": false,
-            "formCode": "FA", "variant": "2", "xml": "<Faktura/>",
-            "path": null, "draft": {}, "parsed": {}
+            "ok": true,
+            "connector": "invoice",
+            "kind": "invoice-xml",
+            "live": false,
+            "formCode": "FA",
+            "variant": "2",
+            "xml": "<Faktura/>",
+            "path": null,
+            "draft": {},
+            "parsed": {}
           }
         }
       ]
@@ -99,18 +202,35 @@
       "version": "v1",
       "effect": "query",
       "reversible": false,
-      "inp": { "path": "?str", "xml": "?str" },
-      "out": {
-        "connector": "const:invoice", "kind": "const:invoice", "live": "bool",
-        "path": "str", "fields": "obj"
+      "inp": {
+        "path": "?str",
+        "xml": "?str"
       },
-      "errors": ["precondition-unmet", "degraded-backend"],
+      "out": {
+        "connector": "const:invoice",
+        "kind": "const:invoice",
+        "live": "bool",
+        "path": "str",
+        "fields": "obj"
+      },
+      "errors": [
+        "precondition-unmet",
+        "degraded-backend"
+      ],
       "examples": [
         {
-          "payload": { "xml": "<Faktura><Fa><P_2>FV1</P_2></Fa></Faktura>" },
+          "payload": {
+            "xml": "<Faktura><Fa><P_2>FV1</P_2></Fa></Faktura>"
+          },
           "result": {
-            "ok": true, "connector": "invoice", "kind": "invoice", "live": false,
-            "path": "", "fields": { "number": "FV1" }
+            "ok": true,
+            "connector": "invoice",
+            "kind": "invoice",
+            "live": false,
+            "path": "",
+            "fields": {
+              "number": "FV1"
+            }
           }
         }
       ]
@@ -119,21 +239,46 @@
       "version": "v1",
       "effect": "query",
       "reversible": false,
-      "inp": { "path": "?str", "xml": "?str", "text": "?str", "output_path": "?str" },
-      "out": {
-        "connector": "const:invoice", "kind": "const:upo", "live": "bool",
-        "format": "str", "ksefNumber": "any", "referenceNumber": "any",
-        "timestamp": "any", "invoiceNumber": "any", "invoiceHash": "any",
-        "nip": "any", "savedTo": "?str"
+      "inp": {
+        "path": "?str",
+        "xml": "?str",
+        "text": "?str",
+        "output_path": "?str"
       },
-      "errors": ["precondition-unmet", "degraded-backend"],
+      "out": {
+        "connector": "const:invoice",
+        "kind": "const:upo",
+        "live": "bool",
+        "format": "str",
+        "ksefNumber": "any",
+        "referenceNumber": "any",
+        "timestamp": "any",
+        "invoiceNumber": "any",
+        "invoiceHash": "any",
+        "nip": "any",
+        "savedTo": "?str"
+      },
+      "errors": [
+        "precondition-unmet",
+        "degraded-backend"
+      ],
       "examples": [
         {
-          "payload": { "text": "{\"ksefReferenceNumber\":\"K-1\"}" },
+          "payload": {
+            "text": "{\"ksefReferenceNumber\":\"K-1\"}"
+          },
           "result": {
-            "ok": true, "connector": "invoice", "kind": "upo", "live": false,
-            "format": "json", "ksefNumber": "K-1", "referenceNumber": null,
-            "timestamp": null, "invoiceNumber": null, "invoiceHash": null, "nip": null
+            "ok": true,
+            "connector": "invoice",
+            "kind": "upo",
+            "live": false,
+            "format": "json",
+            "ksefNumber": "K-1",
+            "referenceNumber": null,
+            "timestamp": null,
+            "invoiceNumber": null,
+            "invoiceHash": null,
+            "nip": null
           }
         }
       ]
@@ -142,19 +287,41 @@
       "version": "v1",
       "effect": "query",
       "reversible": false,
-      "inp": { "xml": "?str", "path": "?str", "xsd_path": "?str" },
-      "out": {
-        "connector": "const:invoice", "kind": "const:validation", "live": "bool",
-        "valid": "bool", "checkedWith": "enum:structural|xsd", "errors": "list",
-        "warnings": "?list", "note": "?str", "schema": "?str", "errorCount": "?int"
+      "inp": {
+        "xml": "?str",
+        "path": "?str",
+        "xsd_path": "?str"
       },
-      "errors": ["precondition-unmet", "degraded-backend"],
+      "out": {
+        "connector": "const:invoice",
+        "kind": "const:validation",
+        "live": "bool",
+        "valid": "bool",
+        "checkedWith": "enum:structural|xsd",
+        "errors": "list",
+        "warnings": "?list",
+        "note": "?str",
+        "schema": "?str",
+        "errorCount": "?int"
+      },
+      "errors": [
+        "precondition-unmet",
+        "degraded-backend"
+      ],
       "examples": [
         {
-          "payload": { "xml": "<Faktura><Fa/></Faktura>" },
+          "payload": {
+            "xml": "<Faktura><Fa/></Faktura>"
+          },
           "result": {
-            "ok": true, "connector": "invoice", "kind": "validation", "live": false,
-            "valid": false, "checkedWith": "structural", "errors": [], "warnings": [],
+            "ok": true,
+            "connector": "invoice",
+            "kind": "validation",
+            "live": false,
+            "valid": false,
+            "checkedWith": "structural",
+            "errors": [],
+            "warnings": [],
             "note": "no FA(2) XSD given"
           }
         }
@@ -164,19 +331,42 @@
       "version": "v1",
       "effect": "query",
       "reversible": false,
-      "inp": { "path": "?str", "limit": "?int", "event": "?str", "connector": "?str", "since": "?num" },
-      "out": {
-        "connector": "const:invoice", "kind": "const:ledger", "live": "bool",
-        "path": "str", "exists": "bool", "count": "int", "summary": "obj", "rows": "list"
+      "inp": {
+        "path": "?str",
+        "limit": "?int",
+        "event": "?str",
+        "connector": "?str",
+        "since": "?num"
       },
-      "errors": ["precondition-unmet", "degraded-backend"],
+      "out": {
+        "connector": "const:invoice",
+        "kind": "const:ledger",
+        "live": "bool",
+        "path": "str",
+        "exists": "bool",
+        "count": "int",
+        "summary": "obj",
+        "rows": "list"
+      },
+      "errors": [
+        "precondition-unmet",
+        "degraded-backend"
+      ],
       "examples": [
         {
-          "payload": { "path": "/tmp/ledger.jsonl" },
+          "payload": {
+            "path": "/tmp/ledger.jsonl"
+          },
           "result": {
-            "ok": true, "connector": "invoice", "kind": "ledger", "live": false,
-            "path": "/tmp/ledger.jsonl", "exists": false, "count": 0,
-            "summary": {}, "rows": []
+            "ok": true,
+            "connector": "invoice",
+            "kind": "ledger",
+            "live": false,
+            "path": "/tmp/ledger.jsonl",
+            "exists": false,
+            "count": 0,
+            "summary": {},
+            "rows": []
           }
         }
       ]
@@ -186,21 +376,65 @@
       "effect": "query",
       "reversible": false,
       "inp": {
-        "text": "?str", "receipt_json": "?str", "path": "?str", "vat_rate": "?num",
-        "seller": "?str", "buyer_nip": "?str", "number": "?str", "currency": "?str",
-        "use_llm": "?bool", "model": "?str"
+        "text": "?str",
+        "receipt_json": "?str",
+        "path": "?str",
+        "vat_rate": "?num",
+        "seller": "?str",
+        "buyer_nip": "?str",
+        "number": "?str",
+        "currency": "?str",
+        "use_llm": "?bool",
+        "model": "?str"
       },
       "out": {
-        "connector": "const:invoice", "kind": "const:invoice-draft", "live": "bool",
-        "draft": "obj", "fields": "obj", "notes": "list"
+        "connector": "const:invoice",
+        "kind": "const:invoice-draft",
+        "live": "bool",
+        "draft": "obj",
+        "fields": "obj",
+        "notes": "list"
       },
-      "errors": ["precondition-unmet", "degraded-backend"],
+      "errors": [
+        "precondition-unmet",
+        "degraded-backend"
+      ],
       "examples": [
         {
-          "payload": { "receipt_json": "{\"total\": 10.0, \"nip\": \"7781422455\"}" },
+          "payload": {
+            "receipt_json": "{\"total\": 10.0, \"nip\": \"7781422455\"}"
+          },
           "result": {
-            "ok": true, "connector": "invoice", "kind": "invoice-draft", "live": false,
-            "draft": {}, "fields": {}, "notes": []
+            "ok": true,
+            "connector": "invoice",
+            "kind": "invoice-draft",
+            "live": false,
+            "draft": {},
+            "fields": {},
+            "notes": []
+          }
+        }
+      ]
+    },
+    "invoice://host/doctor/query/report": {
+      "version": "v1",
+      "effect": "query",
+      "reversible": false,
+      "inp": {},
+      "out": {
+        "connector": "str",
+        "version": "str",
+        "status": "str"
+      },
+      "errors": [],
+      "examples": [
+        {
+          "payload": {},
+          "result": {
+            "ok": true,
+            "connector": "invoice",
+            "version": "0.1.0",
+            "status": "ready"
           }
         }
       ]
