@@ -140,8 +140,22 @@ def _llm_fields(text: str, model: str, context: dict | None = None) -> dict[str,
                   "Use null when absent. Invoice text:\n\n" + text[:6000])
         if context and context.get("ticket"):
             prompt = f"[ticket:{context.get('ticket')}] {prompt}"
-        resp = litellm.completion(model=model, messages=[{"role": "user", "content": prompt}],
-                                  temperature=0, max_tokens=300)
+        kwargs: dict[str, Any] = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0,
+            "max_tokens": 300,
+        }
+        api_base = os.environ.get("INVOICE_LLM_API_BASE") or os.environ.get("URIRUN_LLM_API_BASE") or os.environ.get("OPENAI_API_BASE")
+        if api_base:
+            kwargs["api_base"] = api_base
+            if not (model.startswith("openai/") or model.startswith("openrouter/")):
+                kwargs["model"] = f"openai/{model}"
+        api_key = os.environ.get("INVOICE_LLM_API_KEY") or os.environ.get("OQLLM_API_KEY") or os.environ.get("OPENAI_API_KEY")
+        if api_key:
+            kwargs["api_key"] = api_key
+
+        resp = litellm.completion(**kwargs)
         out = resp["choices"][0]["message"]["content"]
         m = re.search(r"\{.*\}", out, re.S)
         return _json.loads(m.group(0)) if m else None
