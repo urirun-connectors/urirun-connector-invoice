@@ -285,3 +285,22 @@ def test_invoice_artifacts_are_static():
     assert b["kind"] == "invoice-xml" and b["live"] is False
     u = c.ksef_upo(text='{"ksefReferenceNumber":"K-1"}')
     assert u["kind"] == "upo" and u["live"] is False
+
+
+def test_llm_fields_with_oqllm_docker(monkeypatch):
+    """Verify invoice LLM parsing through local OQLLM Docker instance."""
+    import urllib.request
+    try:
+        with urllib.request.urlopen("http://127.0.0.1:11437/health", timeout=1.0) as resp:
+            if resp.status != 200:
+                return
+    except Exception:
+        return
+
+    monkeypatch.setenv("INVOICE_LLM_API_BASE", "http://127.0.0.1:11437/v1")
+    monkeypatch.setenv("INVOICE_LLM_API_KEY", "oqllm_live_loopback_root")
+
+    res = c._llm_fields("Faktura VAT 123/2026, NIP 1234567890, kwota 100 PLN", "oqlos/system-one-router")
+    assert isinstance(res, dict)
+    assert "input_format" in res
+
